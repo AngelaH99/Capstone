@@ -1,83 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CREATE Test Results Viewer</title>
+  <meta charset="UTF-8" />
+  <title>Participant Assessment Lookup</title>
   <style>
     body {
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      background-color: #f8fafc;
-      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f9fafb;
+      padding: 30px;
       color: #333;
     }
     h2 {
       text-align: center;
-      color: #1f2937;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+    }
+    .search-box {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    input[type="text"] {
+      padding: 8px;
+      width: 300px;
+      font-size: 14px;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      margin-left: 8px;
+      cursor: pointer;
     }
     .table-container {
       overflow-x: auto;
-      border-radius: 8px;
-      background: white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      background: white;
     }
     th, td {
+      border: 1px solid #ddd;
       padding: 10px 12px;
-      border: 1px solid #e5e7eb;
       text-align: left;
     }
     th {
       background-color: #f1f5f9;
-      font-weight: 600;
     }
     tr:nth-child(even) {
-      background-color: #f9fafb;
+      background-color: #f9f9f9;
     }
     tr:hover {
-      background-color: #e0f2fe;
+      background-color: #e0f7ff;
     }
   </style>
 </head>
 <body>
-  <h2>CREATE Test Results Viewer</h2>
-  <div class="table-container" id="table-container">Loading...</div>
+
+  <h2>🔍 Participant Assessment Lookup</h2>
+
+  <div class="search-box">
+    <input type="text" id="participantIdInput" placeholder="Enter Participant ID (e.g. 30227-FR+M1943)" />
+    <button onclick="fetchParticipantData()">Search</button>
+  </div>
+
+  <div class="table-container" id="table-container">Please enter a Participant ID.</div>
 
   <script>
     const SUPABASE_URL = 'https://pefpjivvdgueckxvrxxt.supabase.co';
     const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZnBqaXZ2ZGd1ZWNreHZyeHh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5ODEzMjIsImV4cCI6MjA2NzU1NzMyMn0.3fZv8fscIVsVV5SgtIRmHdM31hhgoghIKF2ITRigWKY';
-    const VIEW_NAME = 'view_all_test_results';
 
-    fetch(`${SUPABASE_URL}/rest/v1/${VIEW_NAME}`, {
-      headers: {
-        apikey: API_KEY,
-        Authorization: `Bearer ${API_KEY}`,
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.length === 0) {
-        document.getElementById('table-container').innerText = 'No data available.';
+    function fetchParticipantData() {
+      const participantId = document.getElementById('participantIdInput').value.trim();
+      const container = document.getElementById('table-container');
+
+      if (!participantId) {
+        container.innerText = 'Please enter a valid Participant ID.';
         return;
       }
 
-      const keys = Object.keys(data[0]);
-      let table = '<table><thead><tr>' +
-                  keys.map(k => `<th>${k}</th>`).join('') +
-                  '</tr></thead><tbody>' +
-                  data.map(row => '<tr>' + keys.map(k => `<td>${row[k]}</td>`).join('') + '</tr>').join('') +
-                  '</tbody></table>';
+      container.innerText = 'Loading...';
 
-      document.getElementById('table-container').innerHTML = table;
-    })
-    .catch(error => {
-      document.getElementById('table-container').innerText = 'Failed to load data.';
-      console.error('Error:', error);
-    });
+      fetch(`${SUPABASE_URL}/rest/v1/participant_full_results?participant_id=eq.${encodeURIComponent(participantId)}`, {
+        headers: {
+          apikey: API_KEY,
+          Authorization: `Bearer ${API_KEY}`,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.length === 0) {
+          container.innerText = 'No results found for this ID.';
+          return;
+        }
+
+        const keys = Object.keys(data[0]);
+        let table = '<table><thead><tr>' +
+                    keys.map(k => `<th>${k}</th>`).join('') +
+                    '</tr></thead><tbody>' +
+                    data.map(row => '<tr>' + keys.map(k => `<td>${row[k]}</td>`).join('') + '</tr>').join('') +
+                    '</tbody></table>';
+
+        container.innerHTML = table;
+      })
+      .catch(error => {
+        container.innerText = 'Error fetching data.';
+        console.error(error);
+      });
+    }
   </script>
+
 </body>
 </html>
