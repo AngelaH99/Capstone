@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Supabase View - Test Results</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 8px 12px; border: 1px solid #ccc; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h2>CREATE Test Results Viewer</h2>
+  <div id="table-container">Loading...</div>
+
+  <script>
+    const SUPABASE_URL = 'https://pefpjivvdgueckxvrxxt.supabase.co';
+    const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZnBqaXZ2ZGd1ZWNreHZyeHh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5ODEzMjIsImV4cCI6MjA2NzU1NzMyMn0.3fZv8fscIVsVV5SgtIRmHdM31hhgoghIKF2ITRigWKY';
+    const VIEW_NAME = 'view_all_test_results';
+
+    fetch(`${SUPABASE_URL}/rest/v1/${VIEW_NAME}`, {
+      headers: {
+        apikey: API_KEY,
+        Authorization: `Bearer ${API_KEY}`,
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.length === 0) {
+        document.getElementById('table-container').innerText = 'No data available.';
+        return;
+      }
+
+      const keys = Object.keys(data[0]);
+      let table = '<table><thead><tr>' +
+                  keys.map(k => `<th>${k}</th>`).join('') +
+                  '</tr></thead><tbody>' +
+                  data.map(row => '<tr>' + keys.map(k => `<td>${row[k]}</td>`).join('') + '</tr>').join('') +
+                  '</tbody></table>';
+
+      document.getElementById('table-container').innerHTML = table;
+    })
+    .catch(error => {
+      document.getElementById('table-container').innerText = 'Failed to load data.';
+      console.error('Error:', error);
+    });
+  </script>
+</body>
+</html>
